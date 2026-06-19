@@ -16,10 +16,13 @@ class BrandSerializer(serializers.ModelSerializer):
 
 
 class ProductListSerializer(serializers.ModelSerializer):
-    brand = serializers.CharField(source="brand.name")
-    category = serializers.CharField(source="category.name")
+    brand_name = serializers.CharField(source="brand.name", read_only=True)
+    category_name = serializers.CharField(source="category.name", read_only=True)
+
+    brand = serializers.PrimaryKeyRelatedField(queryset=Brand.objects.all(), write_only=True)
+    category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), write_only=True)
 
     class Meta:
         model = Product
-        fields = ["id", "title", "slug", "brand", "category", "price", "discount_price", "final_price", "stock", "main_image"]
+        fields = ["id", "title", "slug", "brand_name", "brand","category_name", "category",  "price", "discount_price", "final_price", "stock", "main_image", "description"]
         

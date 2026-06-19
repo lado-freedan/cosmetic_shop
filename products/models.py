@@ -34,7 +34,7 @@ class Product(models.Model):
     brand = models.ForeignKey(Brand, on_delete=models.PROTECT, related_name="products", verbose_name="Brand")
     title = models.CharField("Product Name", max_length=200)
     slug = models.SlugField("Product Slug", max_length=200, unique=True, allow_unicode=True)
-    description = models.TextField("Product Description")
+    description = models.TextField("Product Description", blank=True, null=True)
     price = models.DecimalField("Product Price", max_digits=10, decimal_places=2)
     discount_price = models.DecimalField("Discount Price", max_digits=10, decimal_places=2, blank=True, null=True)
     stock = models.PositiveIntegerField("Stock Quantity", default=0)
