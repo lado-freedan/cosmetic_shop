@@ -4,9 +4,9 @@ services:
     container_name: cosmetic_postgres
     restart: always
     environment:
-      POSTGRES_DB: cosmetic_db
-      POSTGRES_USER: cosmetic_user
-      POSTGRES_PASSWORD: Miladnazi_68
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5433:5432"
     volumes:
