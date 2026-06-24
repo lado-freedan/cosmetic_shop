@@ -1,6 +1,12 @@
 from rest_framework import serializers
 
-from .models import Product, Category, Brand
+from .models import Product, Category, Brand, ProductImage
+
+
+class ProductionImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductImage
+        fields = ["id", "image"]
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -22,7 +28,9 @@ class ProductListSerializer(serializers.ModelSerializer):
     brand = serializers.PrimaryKeyRelatedField(queryset=Brand.objects.all(), write_only=True)
     category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), write_only=True)
 
+    images = ProductionImageSerializer(many=True, read_only=True)
+
     class Meta:
         model = Product
-        fields = ["id", "title", "slug", "brand_name", "brand","category_name", "category",  "price", "discount_price", "final_price", "stock", "main_image", "description"]
+        fields = ["id", "title", "slug", "brand_name", "brand","category_name", "category",  "price", "discount_price", "final_price", "stock", "main_image", "inages", "description"]
         
