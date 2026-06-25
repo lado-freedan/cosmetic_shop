@@ -34,6 +34,8 @@ def home_page(reuest):
         <p style="color: #718096; font-size: 18px;">The Backend Server is Up and running successfully!</p>
         <div style="margin-top: 20px;">
             <a href="/api/products/" style="color: #3182CE; text-decoration: none; font-weight: bold;">View Products API</a>
+            <br><br>
+            <a href="/api/docs/" style="color: #4CAF50; text-decoration: none; font-weight: bold;">View Interactive Swagger API Docs</a>
         </div>
     </div>
     """
