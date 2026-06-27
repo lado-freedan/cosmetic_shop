@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.db import transaction
 from rest_framework import viewsets, status
 from rest_framework.response import Response
@@ -7,7 +7,9 @@ from rest_framework.decorators import action
 
 from .models import Cart, CartItem, Order, OrderItem
 from .serializers import CartSerializer, CartItemSerializer
+from .tasks import send_order_confirmation_task
 from products.models import Product
+from users.models import Address
 
 class CartViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -19,6 +21,8 @@ class CartViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=["post"], url_path="add-item")
     def add_item(self, request):
+        if not request.user.is_authenticated:
+            return Response({"detail": "Authentication credential were not provided."}, status=status.HTTP_401_UNAUTHORIZED)
         cart, _ = Cart.objects.get_or_create(user=self.request.user)
         serializer = CartItemSerializer(data=self.request.data)
 
@@ -58,6 +62,11 @@ class CartViewSet(viewsets.ModelViewSet):
         if not cart_items.exists():
             return Response({"error": "Cart is empty."}, status=status.HTTP_400_BAD_REQUEST)
         
+        address_id = request.data.get("address")
+        if not address_id:
+            return Response({"error": "Address is required for checkout."}, status=status.HTTP_400_BAD_REQUEST)
+        shipping_address = get_object_or_404(Address, id=address_id, user=request.user)
+        
         with transaction.atomic():
             order = Order.objects.create(
                 user=self.request.user,
@@ -85,8 +94,27 @@ class CartViewSet(viewsets.ModelViewSet):
                 )
             
             cart_items.delete()
+
+            send_order_confirmation_task.delay(request.user.email, order.id, order.total_price)
         
         return Response(
             {"message": "order is set.", "order_id": order.id},
             status=status.HTTP_201_CREATED
         )
+    
+
+    @action(detail=True, methods=["post"], url_path="pay")
+    def fake_payment(self, request, pk=None):
+        order = get_object_or_404(Order, id=pk, user=request.user)
+
+        if order.status != "pending":
+            return Response({"error": "order is not for payment"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        payment_success = request.data.get("payment_success", True)
+
+        if payment_success:
+            order.status = "paid"
+            order.save()
+            return Response({"message": f"payment for order #{order.id} is done. status changed to Paid"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "payment failed"}, status=status.HTTP_400_BAD_REQUEST)

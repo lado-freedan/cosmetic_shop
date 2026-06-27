@@ -46,5 +46,18 @@ services:
       - redis
     restart: always
 
+  celery_beat:
+    build: .
+    container_name: cosmetic_celery_beat
+    command: celery -A config beat --loglevel=info
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    restart: always
+
 volumes:
   postgres_data:
